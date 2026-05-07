@@ -18,7 +18,7 @@
         </div>
         <div class="formula-card" aria-label="Damage formula summary">
           <span>Final total damage</span>
-          <code>max(1, base × perks − armor) + Σ max(0, element − resistance)</code>
+          <code>max(1, base × perks − armor) + Σ max(0, element × perks − resistance)</code>
         </div>
       </section>
 
@@ -105,6 +105,7 @@
               <tr>
                 <th>Element</th>
                 <th>Weapon</th>
+                <th>After perks</th>
                 <th>Enemy resistance</th>
                 <th>Damage dealt</th>
               </tr>
@@ -118,8 +119,8 @@
         <h2>Calculation notes</h2>
         <ul>
           <li>Armor reduces only physical/base damage. If armor would reduce the physical portion to zero or less, Pixel Worlds displays 1 final base damage.</li>
-          <li>Elemental damage ignores armor, is reduced only by the matching elemental resistance, and never critical strikes.</li>
-          <li>For this baseline, total-damage perks are multiplied together and then applied to the physical/base weapon damage before armor. Melee Madness applies only to weapons marked as melee; guns, throwable shields, thrown weapons, crossbows, cannons, and staffs are marked as ranged.</li>
+          <li>Elemental damage ignores armor, is boosted by applicable perks, is reduced only by the matching elemental resistance, and never critical strikes.</li>
+          <li>Total-damage perks are multiplied together and then applied to both physical/base weapon damage and each elemental damage value before armor or matching resistance. Melee Madness applies only to weapons marked as melee; guns, throwable shields, thrown weapons, crossbows, cannons, and staffs are marked as ranged.</li>
         </ul>
         <p class="sources">
           Mechanics reference Pixel Worlds Wiki pages for
