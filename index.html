@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Worlds Damage Calculator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Pixel Worlds combat planning</p>
+          <h1>Damage per hit calculator</h1>
+          <p class="intro">
+            Compare how a weapon's physical and elemental damage is reduced by an enemy's armor and matching elemental resistance. This baseline ships with one weapon and one enemy, plus the main damage perks.
+          </p>
+        </div>
+        <div class="formula-card" aria-label="Damage formula summary">
+          <span>Final total damage</span>
+          <code>max(1, base × perks − armor) + Σ max(0, element − resistance)</code>
+        </div>
+      </section>
+
+      <section class="grid" aria-label="Calculator controls and results">
+        <form class="panel controls" id="calculator-form">
+          <h2>Loadout</h2>
+
+          <label>
+            Weapon
+            <select id="weapon-select" name="weapon"></select>
+          </label>
+
+          <label>
+            Enemy
+            <select id="enemy-select" name="enemy"></select>
+          </label>
+
+          <fieldset>
+            <legend>Perks</legend>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="meleeMadness" checked />
+              <span>Melee Madness <small>+5% melee total damage</small></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="hereComesThePain" />
+              <span>Here Comes The Pain <small>+10% total damage</small></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="heavyHit" />
+              <span>Heavy Hit <small>+50% damage, -50% attack speed</small></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="healthyHitFull" />
+              <span>Healthy Hit at full health <small>+5% damage</small></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="kamikaze" />
+              <span>Kamikaze <small>+5% total damage</small></span>
+            </label>
+            <label class="check-row">
+              <input type="checkbox" name="perk" value="fierceCompanion" />
+              <span>Fierce Companion <small>+3% damage with familiar</small></span>
+            </label>
+          </fieldset>
+
+          <label class="check-row crit-toggle">
+            <input type="checkbox" id="critical-toggle" name="critical" />
+            <span>Critical hit <small>Physical damage doubles before armor; elemental damage cannot crit.</small></span>
+          </label>
+        </form>
+
+        <section class="panel results" aria-live="polite">
+          <div class="result-header">
+            <div>
+              <p class="eyebrow">Damage per hit</p>
+              <h2 id="total-damage">0</h2>
+            </div>
+            <p id="hits-to-kill" class="pill">0 hits to defeat</p>
+          </div>
+
+          <div class="breakdown">
+            <div>
+              <span>Physical after armor</span>
+              <strong id="physical-damage">0</strong>
+              <small id="physical-detail"></small>
+            </div>
+            <div>
+              <span>Elemental after resistance</span>
+              <strong id="elemental-damage">0</strong>
+              <small id="elemental-detail"></small>
+            </div>
+            <div>
+              <span>Combined perk multiplier</span>
+              <strong id="perk-multiplier">1.00×</strong>
+              <small id="perk-detail"></small>
+            </div>
+          </div>
+
+          <table>
+            <caption>Element comparison</caption>
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Weapon</th>
+                <th>Enemy resistance</th>
+                <th>Damage dealt</th>
+              </tr>
+            </thead>
+            <tbody id="element-table"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section class="panel notes">
+        <h2>Calculation notes</h2>
+        <ul>
+          <li>Armor reduces only physical/base damage. If armor would reduce the physical portion to zero or less, Pixel Worlds displays 1 final base damage.</li>
+          <li>Elemental damage ignores armor, is reduced only by the matching elemental resistance, and never critical strikes.</li>
+          <li>For this baseline, total-damage perks are multiplied together and then applied to the physical/base weapon damage before armor. The data model is ready for more weapons, enemies, and perk rules.</li>
+        </ul>
+        <p class="sources">
+          Baseline data and mechanics reference Pixel Worlds Wiki pages for
+          <a href="https://pixelworlds.fandom.com/wiki/Damage">Damage</a>,
+          <a href="https://pixelworlds.fandom.com/wiki/Armor">Armor</a>,
+          <a href="https://pixelworlds.fandom.com/wiki/Perks">Perks</a>,
+          <a href="https://pixelworlds.fandom.com/wiki/Light_Element">Element behavior</a>,
+          <a href="https://pixelworlds.fandom.com/wiki/Golden_Short_Sword">Golden Short Sword</a>, and
+          <a href="https://pixelworlds.fandom.com/wiki/Electro">Electro</a>.
+        </p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
