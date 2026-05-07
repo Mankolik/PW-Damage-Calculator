@@ -117,7 +117,8 @@ legend {
   font-weight: 750;
 }
 
-select {
+select,
+.choice-search {
   width: 100%;
   margin-top: 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -126,6 +127,14 @@ select {
   color: var(--text);
   padding: 13px 14px;
   font: inherit;
+}
+
+.choice-search {
+  margin-top: 10px;
+}
+
+.choice-search::placeholder {
+  color: var(--muted);
 }
 
 fieldset {

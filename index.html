@@ -26,16 +26,18 @@
         <form class="panel controls" id="calculator-form">
           <h2>Loadout</h2>
 
-          <label>
-            Weapon
-            <select id="weapon-select" name="weapon"></select>
-          </label>
+          <div class="choice-field">
+            <label for="weapon-search">Weapon</label>
+            <input id="weapon-search" class="choice-search" type="search" autocomplete="off" placeholder="Type to filter weapons" aria-controls="weapon-select" />
+            <select id="weapon-select" name="weapon" aria-label="Weapon"></select>
+          </div>
           <article class="choice-preview" id="weapon-preview" aria-live="polite"></article>
 
-          <label>
-            Enemy
-            <select id="enemy-select" name="enemy"></select>
-          </label>
+          <div class="choice-field">
+            <label for="enemy-search">Enemy</label>
+            <input id="enemy-search" class="choice-search" type="search" autocomplete="off" placeholder="Type to filter enemies" aria-controls="enemy-select" />
+            <select id="enemy-select" name="enemy" aria-label="Enemy"></select>
+          </div>
           <article class="choice-preview" id="enemy-preview" aria-live="polite"></article>
 
           <fieldset>
