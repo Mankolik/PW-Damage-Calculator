@@ -183,7 +183,6 @@ function calculateDamage({ weapon, enemy, activePerks, critical }) {
   const multiplier = appliedPerks.reduce((total, perk) => total * perk.multiplier, 1);
   const criticalMultiplier = critical ? 2 : 1;
   const incomingPhysical = weapon.baseDamage * multiplier * criticalMultiplier;
-  const mitigatedPhysical = Math.max(1, incomingPhysical - enemy.armor);
 
   const elementalRows = elements.map((element) => {
     const raw = weapon.elementalDamage[element] ?? 0;
@@ -193,10 +192,13 @@ function calculateDamage({ weapon, enemy, activePerks, critical }) {
     return { element, raw, boosted, resistance, dealt };
   });
 
+  const mitigatedPhysical = Math.max(0, incomingPhysical - enemy.armor);
   const totalElemental = elementalRows.reduce((total, row) => total + row.dealt, 0);
-  const total = mitigatedPhysical + totalElemental;
+  const fallbackPhysical = mitigatedPhysical === 0 && totalElemental === 0 ? 1 : 0;
+  const totalPhysical = mitigatedPhysical + fallbackPhysical;
+  const total = totalPhysical + totalElemental;
 
-  return { appliedPerks, multiplier, incomingPhysical, mitigatedPhysical, elementalRows, totalElemental, total };
+  return { appliedPerks, multiplier, incomingPhysical, mitigatedPhysical, fallbackPhysical, totalPhysical, elementalRows, totalElemental, total };
 }
 
 function formatNumber(value) {
@@ -209,6 +211,18 @@ function formatElementSummary(values) {
     .filter((element) => (values[element] ?? 0) > 0)
     .map((element) => `${element[0].toUpperCase()}${element.slice(1)} ${values[element]}`);
   return active.length ? active.join(" · ") : "No elemental values";
+}
+
+function formatElementalCalculation(rows, multiplier) {
+  const weaponElements = rows.filter((row) => row.raw > 0);
+
+  if (!weaponElements.length) {
+    return "No elemental damage on this weapon.";
+  }
+
+  return weaponElements
+    .map((row) => `${row.element[0].toUpperCase()}${row.element.slice(1)} ${formatNumber(row.raw)} × ${formatNumber(multiplier)} perks − ${formatNumber(row.resistance)} resist = ${formatNumber(row.dealt)}`)
+    .join(" · ");
 }
 
 function renderPreview(container, item, kind) {
@@ -242,10 +256,10 @@ function render() {
   renderPreview(enemyPreview, enemy, "enemy");
   totalDamage.textContent = formatNumber(result.total);
   hitsToKill.textContent = `${hitCount} ${hitCount === 1 ? "hit" : "hits"} to defeat ${enemy.name}`;
-  physicalDamage.textContent = formatNumber(result.mitigatedPhysical);
-  physicalDetail.textContent = `${formatNumber(weapon.baseDamage)} base × ${formatNumber(result.multiplier)} perks${critical ? " × 2 crit" : ""} − ${enemy.armor} armor`;
+  physicalDamage.textContent = formatNumber(result.totalPhysical);
+  physicalDetail.textContent = `${formatNumber(weapon.baseDamage)} base × ${formatNumber(result.multiplier)} perks${critical ? " × 2 crit" : ""} − ${enemy.armor} armor${result.fallbackPhysical ? " → 1 minimum because no elemental damage is dealt" : ""}`;
   elementalDamageValue.textContent = formatNumber(result.totalElemental);
-  elementalDetail.textContent = result.totalElemental > 0 ? "Perks boost each element before matching resistances are subtracted." : "No perk-boosted elemental damage passes this enemy's resistances.";
+  elementalDetail.textContent = formatElementalCalculation(result.elementalRows, result.multiplier);
   perkMultiplier.textContent = `${formatNumber(result.multiplier)}×`;
   perkDetail.textContent = result.appliedPerks.length ? result.appliedPerks.map((perk) => perk.label).join(", ") : "No selected perk applies.";
 
