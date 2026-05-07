@@ -153,6 +153,8 @@ const perks = {
 const form = document.querySelector("#calculator-form");
 const weaponSelect = document.querySelector("#weapon-select");
 const enemySelect = document.querySelector("#enemy-select");
+const weaponSearch = document.querySelector("#weapon-search");
+const enemySearch = document.querySelector("#enemy-search");
 const weaponPreview = document.querySelector("#weapon-preview");
 const enemyPreview = document.querySelector("#enemy-preview");
 const totalDamage = document.querySelector("#total-damage");
@@ -165,10 +167,50 @@ const perkMultiplier = document.querySelector("#perk-multiplier");
 const perkDetail = document.querySelector("#perk-detail");
 const elementTable = document.querySelector("#element-table");
 
-function populateSelect(select, options) {
+let selectedWeaponId = weapons[0].id;
+let selectedEnemyId = enemies[0].id;
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function populateSelect(select, options, selectedId) {
+  select.disabled = options.length === 0;
+
+  if (!options.length) {
+    select.innerHTML = `<option>No matches found</option>`;
+    return null;
+  }
+
+  const nextSelectedId = options.some((option) => option.id === selectedId)
+    ? selectedId
+    : options[0].id;
+
   select.innerHTML = options
-    .map((option) => `<option value="${option.id}">${option.name}</option>`)
+    .map((option) => `<option value="${escapeHtml(option.id)}">${escapeHtml(option.name)}</option>`)
     .join("");
+  select.value = nextSelectedId;
+
+  return nextSelectedId;
+}
+
+function filteredChoices(options, query) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return options;
+  }
+
+  return options.filter((option) => option.name.toLowerCase().includes(normalizedQuery));
+}
+
+function syncFilteredSelect({ select, options, query, selectedId }) {
+  return populateSelect(select, filteredChoices(options, query), selectedId) ?? selectedId;
 }
 
 function selectedPerks(formData) {
@@ -245,8 +287,8 @@ function renderPreview(container, item, kind) {
 
 function render() {
   const formData = new FormData(form);
-  const weapon = weapons.find((item) => item.id === formData.get("weapon")) ?? weapons[0];
-  const enemy = enemies.find((item) => item.id === formData.get("enemy")) ?? enemies[0];
+  const weapon = weapons.find((item) => item.id === selectedWeaponId) ?? weapons[0];
+  const enemy = enemies.find((item) => item.id === selectedEnemyId) ?? enemies[0];
   const activePerks = selectedPerks(formData);
   const critical = formData.has("critical");
   const result = calculateDamage({ weapon, enemy, activePerks, critical });
@@ -276,7 +318,38 @@ function render() {
     .join("");
 }
 
-populateSelect(weaponSelect, weapons);
-populateSelect(enemySelect, enemies);
+selectedWeaponId = populateSelect(weaponSelect, weapons, selectedWeaponId) ?? selectedWeaponId;
+selectedEnemyId = populateSelect(enemySelect, enemies, selectedEnemyId) ?? selectedEnemyId;
+
+weaponSearch.addEventListener("input", () => {
+  selectedWeaponId = syncFilteredSelect({
+    select: weaponSelect,
+    options: weapons,
+    query: weaponSearch.value,
+    selectedId: selectedWeaponId,
+  });
+  render();
+});
+
+enemySearch.addEventListener("input", () => {
+  selectedEnemyId = syncFilteredSelect({
+    select: enemySelect,
+    options: enemies,
+    query: enemySearch.value,
+    selectedId: selectedEnemyId,
+  });
+  render();
+});
+
+weaponSelect.addEventListener("change", () => {
+  selectedWeaponId = weaponSelect.value;
+  render();
+});
+
+enemySelect.addEventListener("change", () => {
+  selectedEnemyId = enemySelect.value;
+  render();
+});
+
 form.addEventListener("change", render);
 render();
