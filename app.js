@@ -187,9 +187,10 @@ function calculateDamage({ weapon, enemy, activePerks, critical }) {
 
   const elementalRows = elements.map((element) => {
     const raw = weapon.elementalDamage[element] ?? 0;
+    const boosted = raw * multiplier;
     const resistance = enemy.elementalResistance[element] ?? 0;
-    const dealt = Math.max(0, raw - resistance);
-    return { element, raw, resistance, dealt };
+    const dealt = Math.max(0, boosted - resistance);
+    return { element, raw, boosted, resistance, dealt };
   });
 
   const totalElemental = elementalRows.reduce((total, row) => total + row.dealt, 0);
@@ -199,7 +200,8 @@ function calculateDamage({ weapon, enemy, activePerks, critical }) {
 }
 
 function formatNumber(value) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  const rounded = Math.round(value);
+  return Math.abs(value - rounded) < Number.EPSILON * 100 ? String(rounded) : value.toFixed(2);
 }
 
 function formatElementSummary(values) {
@@ -243,7 +245,7 @@ function render() {
   physicalDamage.textContent = formatNumber(result.mitigatedPhysical);
   physicalDetail.textContent = `${formatNumber(weapon.baseDamage)} base × ${formatNumber(result.multiplier)} perks${critical ? " × 2 crit" : ""} − ${enemy.armor} armor`;
   elementalDamageValue.textContent = formatNumber(result.totalElemental);
-  elementalDetail.textContent = result.totalElemental > 0 ? "Matching resistances were subtracted from each element." : "No elemental damage passes this enemy's resistances.";
+  elementalDetail.textContent = result.totalElemental > 0 ? "Perks boost each element before matching resistances are subtracted." : "No perk-boosted elemental damage passes this enemy's resistances.";
   perkMultiplier.textContent = `${formatNumber(result.multiplier)}×`;
   perkDetail.textContent = result.appliedPerks.length ? result.appliedPerks.map((perk) => perk.label).join(", ") : "No selected perk applies.";
 
@@ -251,9 +253,10 @@ function render() {
     .map((row) => `
       <tr>
         <td>${row.element[0].toUpperCase()}${row.element.slice(1)}</td>
-        <td>${row.raw}</td>
-        <td>${row.resistance}</td>
-        <td class="${row.dealt > 0 ? "element-hit" : "element-blocked"}">${row.dealt}</td>
+        <td>${formatNumber(row.raw)}</td>
+        <td>${formatNumber(row.boosted)}</td>
+        <td>${formatNumber(row.resistance)}</td>
+        <td class="${row.dealt > 0 ? "element-hit" : "element-blocked"}">${formatNumber(row.dealt)}</td>
       </tr>
     `)
     .join("");
