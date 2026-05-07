@@ -13,7 +13,7 @@
           <p class="eyebrow">Pixel Worlds combat planning</p>
           <h1>Damage per hit calculator</h1>
           <p class="intro">
-            Compare how a weapon's physical and elemental damage is reduced by an enemy's armor and matching elemental resistance. This baseline ships with one weapon and one enemy, plus the main damage perks.
+            Compare how a weapon's physical and elemental damage is reduced by an enemy's armor and matching elemental resistance. Choose from the imported weapon and enemy roster, including their local images and wiki-sourced combat stats.
           </p>
         </div>
         <div class="formula-card" aria-label="Damage formula summary">
@@ -30,11 +30,13 @@
             Weapon
             <select id="weapon-select" name="weapon"></select>
           </label>
+          <article class="choice-preview" id="weapon-preview" aria-live="polite"></article>
 
           <label>
             Enemy
             <select id="enemy-select" name="enemy"></select>
           </label>
+          <article class="choice-preview" id="enemy-preview" aria-live="polite"></article>
 
           <fieldset>
             <legend>Perks</legend>
@@ -117,16 +119,15 @@
         <ul>
           <li>Armor reduces only physical/base damage. If armor would reduce the physical portion to zero or less, Pixel Worlds displays 1 final base damage.</li>
           <li>Elemental damage ignores armor, is reduced only by the matching elemental resistance, and never critical strikes.</li>
-          <li>For this baseline, total-damage perks are multiplied together and then applied to the physical/base weapon damage before armor. The data model is ready for more weapons, enemies, and perk rules.</li>
+          <li>For this baseline, total-damage perks are multiplied together and then applied to the physical/base weapon damage before armor. Melee Madness applies only to weapons marked as melee; guns, throwable shields, thrown weapons, crossbows, cannons, and staffs are marked as ranged.</li>
         </ul>
         <p class="sources">
-          Baseline data and mechanics reference Pixel Worlds Wiki pages for
+          Mechanics reference Pixel Worlds Wiki pages for
           <a href="https://pixelworlds.fandom.com/wiki/Damage">Damage</a>,
           <a href="https://pixelworlds.fandom.com/wiki/Armor">Armor</a>,
-          <a href="https://pixelworlds.fandom.com/wiki/Perks">Perks</a>,
-          <a href="https://pixelworlds.fandom.com/wiki/Light_Element">Element behavior</a>,
-          <a href="https://pixelworlds.fandom.com/wiki/Golden_Short_Sword">Golden Short Sword</a>, and
-          <a href="https://pixelworlds.fandom.com/wiki/Electro">Electro</a>.
+          <a href="https://pixelworlds.fandom.com/wiki/Perks">Perks</a>, and
+          <a href="https://pixelworlds.fandom.com/wiki/Light_Element">element behavior</a>.
+          Weapon and enemy cards link directly to their matching Pixel Worlds Wiki pages.
         </p>
       </section>
     </main>
