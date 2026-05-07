@@ -153,8 +153,10 @@ const perks = {
 const form = document.querySelector("#calculator-form");
 const weaponSelect = document.querySelector("#weapon-select");
 const enemySelect = document.querySelector("#enemy-select");
-const weaponSearch = document.querySelector("#weapon-search");
-const enemySearch = document.querySelector("#enemy-search");
+const weaponCombobox = document.querySelector("#weapon-combobox");
+const enemyCombobox = document.querySelector("#enemy-combobox");
+const weaponListbox = document.querySelector("#weapon-listbox");
+const enemyListbox = document.querySelector("#enemy-listbox");
 const weaponPreview = document.querySelector("#weapon-preview");
 const enemyPreview = document.querySelector("#enemy-preview");
 const totalDamage = document.querySelector("#total-damage");
@@ -180,23 +182,10 @@ function escapeHtml(value) {
 }
 
 function populateSelect(select, options, selectedId) {
-  select.disabled = options.length === 0;
-
-  if (!options.length) {
-    select.innerHTML = `<option>No matches found</option>`;
-    return null;
-  }
-
-  const nextSelectedId = options.some((option) => option.id === selectedId)
-    ? selectedId
-    : options[0].id;
-
   select.innerHTML = options
     .map((option) => `<option value="${escapeHtml(option.id)}">${escapeHtml(option.name)}</option>`)
     .join("");
-  select.value = nextSelectedId;
-
-  return nextSelectedId;
+  select.value = selectedId;
 }
 
 function filteredChoices(options, query) {
@@ -209,8 +198,144 @@ function filteredChoices(options, query) {
   return options.filter((option) => option.name.toLowerCase().includes(normalizedQuery));
 }
 
-function syncFilteredSelect({ select, options, query, selectedId }) {
-  return populateSelect(select, filteredChoices(options, query), selectedId) ?? selectedId;
+function renderComboboxOptions({ input, listbox, options, activeIndex, selectedId }) {
+  if (!options.length) {
+    listbox.innerHTML = `<li class="choice-option empty" role="option" aria-disabled="true">No matches found</li>`;
+    input.removeAttribute("aria-activedescendant");
+    return;
+  }
+
+  listbox.innerHTML = options
+    .map((option, index) => {
+      const isActive = index === activeIndex;
+      const isSelected = option.id === selectedId;
+      return `
+        <li
+          id="${input.id}-option-${escapeHtml(option.id)}"
+          class="choice-option${isActive ? " active" : ""}${isSelected ? " selected" : ""}"
+          role="option"
+          aria-selected="${isSelected}"
+          data-option-id="${escapeHtml(option.id)}"
+        >
+          ${escapeHtml(option.name)}
+        </li>
+      `;
+    })
+    .join("");
+
+  input.setAttribute("aria-activedescendant", `${input.id}-option-${options[activeIndex].id}`);
+}
+
+function setupCombobox({ input, listbox, select, options, getSelectedId, setSelectedId }) {
+  let filteredOptions = options;
+  let activeIndex = 0;
+  let isOpen = false;
+
+  function selectedOption() {
+    return options.find((option) => option.id === getSelectedId()) ?? options[0];
+  }
+
+  function openList() {
+    isOpen = true;
+    input.setAttribute("aria-expanded", "true");
+    listbox.classList.add("open");
+  }
+
+  function closeList() {
+    isOpen = false;
+    input.setAttribute("aria-expanded", "false");
+    listbox.classList.remove("open");
+    input.removeAttribute("aria-activedescendant");
+    input.value = selectedOption().name;
+  }
+
+  function refreshOptions(query = input.value) {
+    filteredOptions = filteredChoices(options, query);
+    const selectedIndex = filteredOptions.findIndex((option) => option.id === getSelectedId());
+    activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+    renderComboboxOptions({ input, listbox, options: filteredOptions, activeIndex, selectedId: getSelectedId() });
+  }
+
+  function chooseOption(option) {
+    setSelectedId(option.id);
+    select.value = option.id;
+    input.value = option.name;
+    refreshOptions(option.name);
+    closeList();
+    render();
+  }
+
+  populateSelect(select, options, getSelectedId());
+  input.value = selectedOption().name;
+  refreshOptions("");
+
+  input.addEventListener("focus", () => {
+    openList();
+    refreshOptions("");
+    input.select();
+  });
+
+  input.addEventListener("click", () => {
+    if (!isOpen) {
+      openList();
+    }
+    refreshOptions(input.selectionStart === 0 && input.selectionEnd === input.value.length ? "" : input.value);
+  });
+
+  input.addEventListener("input", () => {
+    openList();
+    refreshOptions(input.value);
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      openList();
+
+      if (!filteredOptions.length) {
+        return;
+      }
+
+      const direction = event.key === "ArrowDown" ? 1 : -1;
+      activeIndex = (activeIndex + direction + filteredOptions.length) % filteredOptions.length;
+      renderComboboxOptions({ input, listbox, options: filteredOptions, activeIndex, selectedId: getSelectedId() });
+      return;
+    }
+
+    if (event.key === "Enter" && isOpen) {
+      event.preventDefault();
+      const option = filteredOptions[activeIndex];
+
+      if (option) {
+        chooseOption(option);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeList();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    window.setTimeout(closeList, 120);
+  });
+
+  listbox.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    const optionElement = event.target.closest("[data-option-id]");
+
+    if (!optionElement) {
+      return;
+    }
+
+    const option = options.find((item) => item.id === optionElement.dataset.optionId);
+
+    if (option) {
+      chooseOption(option);
+    }
+  });
 }
 
 function selectedPerks(formData) {
@@ -318,27 +443,26 @@ function render() {
     .join("");
 }
 
-selectedWeaponId = populateSelect(weaponSelect, weapons, selectedWeaponId) ?? selectedWeaponId;
-selectedEnemyId = populateSelect(enemySelect, enemies, selectedEnemyId) ?? selectedEnemyId;
-
-weaponSearch.addEventListener("input", () => {
-  selectedWeaponId = syncFilteredSelect({
-    select: weaponSelect,
-    options: weapons,
-    query: weaponSearch.value,
-    selectedId: selectedWeaponId,
-  });
-  render();
+setupCombobox({
+  input: weaponCombobox,
+  listbox: weaponListbox,
+  select: weaponSelect,
+  options: weapons,
+  getSelectedId: () => selectedWeaponId,
+  setSelectedId: (id) => {
+    selectedWeaponId = id;
+  },
 });
 
-enemySearch.addEventListener("input", () => {
-  selectedEnemyId = syncFilteredSelect({
-    select: enemySelect,
-    options: enemies,
-    query: enemySearch.value,
-    selectedId: selectedEnemyId,
-  });
-  render();
+setupCombobox({
+  input: enemyCombobox,
+  listbox: enemyListbox,
+  select: enemySelect,
+  options: enemies,
+  getSelectedId: () => selectedEnemyId,
+  setSelectedId: (id) => {
+    selectedEnemyId = id;
+  },
 });
 
 weaponSelect.addEventListener("change", () => {

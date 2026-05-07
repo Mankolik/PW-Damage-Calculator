@@ -27,16 +27,46 @@
           <h2>Loadout</h2>
 
           <div class="choice-field">
-            <label for="weapon-search">Weapon</label>
-            <input id="weapon-search" class="choice-search" type="search" autocomplete="off" placeholder="Type to filter weapons" aria-controls="weapon-select" />
-            <select id="weapon-select" name="weapon" aria-label="Weapon"></select>
+            <label for="weapon-combobox">Weapon</label>
+            <div class="choice-combobox" data-choice="weapon">
+              <input
+                id="weapon-combobox"
+                class="choice-combobox-input"
+                type="text"
+                role="combobox"
+                autocomplete="off"
+                spellcheck="false"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="weapon-listbox"
+                placeholder="Select or type to filter weapons"
+              />
+              <button class="choice-combobox-toggle" type="button" aria-label="Show weapon options" tabindex="-1"></button>
+              <ul id="weapon-listbox" class="choice-options" role="listbox"></ul>
+              <select id="weapon-select" name="weapon" aria-label="Weapon" hidden></select>
+            </div>
           </div>
           <article class="choice-preview" id="weapon-preview" aria-live="polite"></article>
 
           <div class="choice-field">
-            <label for="enemy-search">Enemy</label>
-            <input id="enemy-search" class="choice-search" type="search" autocomplete="off" placeholder="Type to filter enemies" aria-controls="enemy-select" />
-            <select id="enemy-select" name="enemy" aria-label="Enemy"></select>
+            <label for="enemy-combobox">Enemy</label>
+            <div class="choice-combobox" data-choice="enemy">
+              <input
+                id="enemy-combobox"
+                class="choice-combobox-input"
+                type="text"
+                role="combobox"
+                autocomplete="off"
+                spellcheck="false"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="enemy-listbox"
+                placeholder="Select or type to filter enemies"
+              />
+              <button class="choice-combobox-toggle" type="button" aria-label="Show enemy options" tabindex="-1"></button>
+              <ul id="enemy-listbox" class="choice-options" role="listbox"></ul>
+              <select id="enemy-select" name="enemy" aria-label="Enemy" hidden></select>
+            </div>
           </div>
           <article class="choice-preview" id="enemy-preview" aria-live="polite"></article>
 
